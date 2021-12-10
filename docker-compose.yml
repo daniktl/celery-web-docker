@@ -1,0 +1,56 @@
+version: "3.9"
+
+x-python: &x-python
+  image: daniktl/celery-test
+  stdin_open: true
+  depends_on:
+    intranet-rabbit:
+      condition: service_healthy
+
+x-celery: &x-celery
+  <<: *x-python
+  command: /srv/app/etc/celery_entrypoint.sh
+  depends_on:
+    web:
+      condition: service_started
+  restart: on-failure
+
+services:
+
+  web:
+    <<: *x-python
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint:
+      - /srv/app/celery_test/entrypoint.sh
+    depends_on:
+      - rabbitmq
+
+  celery-worker:
+    <<: *x-celery
+    environment:
+      - PROCESS=worker
+    entrypoint:
+      - /srv/app/celery_test/celery_entrypoint.sh
+    depends_on:
+      - rabbitmq
+
+  celery-beat:
+    <<: *x-celery
+    environment:
+      - PROCESS=beat
+    entrypoint:
+      - /srv/app/celery_test/celery_entrypoint.sh
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3.9
+    ports:
+      - "5672:5672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 30s
+      retries: 5
