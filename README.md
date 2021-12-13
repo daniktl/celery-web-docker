@@ -19,3 +19,10 @@ As for now - it contain the basic setup with:
 To run this app make sure you have docker and docker-compose [installed](https://docs.docker.com/engine/install/).
 
 Then just run the `docker-compose up` and the project will be started.
+
+## Future
+
+There're couple of things to be added to create a real web application example:
+
+* Use the Flask web app context for the Celery worker to manage the DB.
+* Add tests to ensure the code is working and stable.
